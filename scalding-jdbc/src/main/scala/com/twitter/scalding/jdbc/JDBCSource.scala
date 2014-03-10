@@ -80,32 +80,37 @@ abstract class JDBCSource extends Source {
   protected def nullStr(nullable : Boolean) = if(nullable) "NULL" else "NOT NULL"
 
   protected def mkColumnDef(name : String, typeName : String,
-    nullable : Boolean, sizeOp : Option[Int] = None, defOp : Option[String]) = {
-    val sizeStr = sizeOp.map { "(" + _.toString + ")" }.getOrElse("")
+    nullable : Boolean, typeOp : Option[String] = None, defOp : Option[String]) = {
+    val typeStr = typeOp.map { "(" + _ + ")" }.getOrElse("")
     val defStr = defOp.map { " DEFAULT '" + _.toString + "' " }.getOrElse(" ")
-    ColumnDefinition(name, typeName + sizeStr + defStr + nullStr(nullable))
+    ColumnDefinition(name, typeName + typeStr + defStr + nullStr(nullable))
   }
 
   // Some helper methods that we can use to generate column definitions
   protected def bigint(name : String, size : Int = 20, nullable : Boolean = false) = {
-    mkColumnDef(name, "BIGINT", nullable, Some(size), None)
+    mkColumnDef(name, "BIGINT", nullable, Some(size.toString), None)
   }
 
   protected def int(name : String, size : Int = 11, defaultValue : Int = 0, nullable : Boolean = false) = {
-    mkColumnDef(name, "INT", nullable, Some(size), Some(defaultValue.toString))
+    mkColumnDef(name, "INT", nullable, Some(size.toString), Some(defaultValue.toString))
   }
 
   protected def smallint(name : String, size : Int = 6, defaultValue : Int = 0, nullable : Boolean = false) = {
-    mkColumnDef(name, "SMALLINT", nullable, Some(size), Some(defaultValue.toString))
+    mkColumnDef(name, "SMALLINT", nullable, Some(size.toString), Some(defaultValue.toString))
   }
 
   // NOTE: tinyint(1) actually gets converted to a java Boolean
   protected def tinyint(name : String, size : Int = 8, nullable : Boolean = false) = {
-    mkColumnDef(name, "TINYINT", nullable, Some(size), None)
+    mkColumnDef(name, "TINYINT", nullable, Some(size.toString), None)
   }
 
   protected def varchar(name : String, size : Int = 255, nullable : Boolean = false) = {
-    mkColumnDef(name, "VARCHAR", nullable, Some(size), None)
+    mkColumnDef(name, "VARCHAR", nullable, Some(size.toString), None)
+  }
+
+  protected def enum(name : String, elems : Seq[String], nullable : Boolean  = false) = {
+    var enumTypes = "'%s'".format(elems.mkString("', "))
+    mkColumnDef(name, "ENUM", nullable, Some(enumTypes), None)
   }
 
   protected def date(name : String, nullable : Boolean = false) = {
